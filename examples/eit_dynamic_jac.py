@@ -4,13 +4,14 @@
 # Distributed under the (new) BSD License. See LICENSE.txt for more info.
 from __future__ import absolute_import, division, print_function
 
+import time 
 import matplotlib.pyplot as plt
 import numpy as np
 import pyeit.eit.jac as jac
 import pyeit.mesh as mesh
 from pyeit.eit.fem import EITForward
 from pyeit.eit.interp2d import sim2pts
-from pyeit.mesh.shape import thorax
+from pyeit.mesh.shape import thorax, unit_circle
 import pyeit.eit.protocol as protocol
 from pyeit.mesh.wrapper import PyEITAnomaly_Circle
 
@@ -19,9 +20,9 @@ n_el = 16  # nb of electrodes
 use_customize_shape = False
 if use_customize_shape:
     # Mesh shape is specified with fd parameter in the instantiation, e.g : fd=thorax
-    mesh_obj = mesh.create(n_el, h0=0.1, fd=thorax)
+    mesh_obj = mesh.create(n_el, h0=0.075, fd=thorax)
 else:
-    mesh_obj = mesh.create(n_el, h0=0.1)
+    mesh_obj = mesh.create(n_el, h0=0.075)
 
 # extract node, element, alpha
 pts = mesh_obj.node
@@ -30,17 +31,24 @@ x, y = pts[:, 0], pts[:, 1]
 
 """ 1. problem setup """
 # mesh_obj["alpha"] = np.random.rand(tri.shape[0]) * 200 + 100 # NOT USED
-anomaly = PyEITAnomaly_Circle(center=[0.5, 0.5], r=0.1, perm=1000.0)
+anomaly = PyEITAnomaly_Circle(center=[0.5, 0.5], r=0.1, perm=100.0)
 mesh_new = mesh.set_perm(mesh_obj, anomaly=anomaly)
 
 """ 2. FEM simulation """
 # setup EIT scan conditions
-protocol_obj = protocol.create(n_el, dist_exc=8, step_meas=1, parser_meas="std")
+protocol_obj = protocol.create(n_el, dist_exc=1, step_meas=1, parser_meas="std")
 
 # calculate simulated data
 fwd = EITForward(mesh_obj, protocol_obj)
-v0 = fwd.solve_eit()
-v1 = fwd.solve_eit(perm=mesh_new.perm)
+
+
+v0 = np.loadtxt('examples/example_data/ref_data.txt')
+v1 = np.loadtxt('examples/example_data/diff_left_data.txt')
+print(len(v0))
+print(len(v1))
+#v0 = fwd.solve_eit()
+#v1 = fwd.solve_eit(perm=mesh_new.perm)
+time_start_0 = float(time.time() % (24 * 3600))
 
 """ 3. JAC solver """
 # Note: if the jac and the real-problem are generated using the same mesh,
@@ -49,26 +57,24 @@ v1 = fwd.solve_eit(perm=mesh_new.perm)
 # (mostly) the shape and the electrode positions are not exactly the same
 # as in mesh generating the jac, then data must be normalized.
 eit = jac.JAC(mesh_obj, protocol_obj)
-eit.setup(p=0.5, lamb=0.01, method="kotre", perm=1, jac_normalized=True)
+eit.setup(p=0.5, lamb=0.8, method="kotre", perm=1000, jac_normalized=True)
 ds = eit.solve(v1, v0, normalize=True)
 ds_n = sim2pts(pts, tri, np.real(ds))
-
+print('ds=\n', ds_n)
 # plot ground truth
-fig, axes = plt.subplots(1, 2, constrained_layout=True)
-fig.set_size_inches(9, 4)
+fig, ax = plt.subplots(constrained_layout=True)
 
-ax = axes[0]
-delta_perm = mesh_new.perm - mesh_obj.perm
-im = ax.tripcolor(x, y, tri, np.real(delta_perm), shading="flat")
-ax.set_aspect("equal")
+
 
 # plot EIT reconstruction
-ax = axes[1]
 im = ax.tripcolor(x, y, tri, ds_n, shading="flat")
 for i, e in enumerate(mesh_obj.el_pos):
     ax.annotate(str(i + 1), xy=(x[e], y[e]), color="r")
 ax.set_aspect("equal")
 
-fig.colorbar(im, ax=axes.ravel().tolist())
+fig.colorbar(im, ax=ax)
+time_end_0 = float(time.time() % (24 * 3600))
+run_time_total = time_end_0 - time_start_0
+print('Run time: ',run_time_total)
 # plt.savefig('../doc/images/demo_jac.png', dpi=96)
 plt.show()
