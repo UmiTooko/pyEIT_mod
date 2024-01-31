@@ -83,9 +83,9 @@ n_el = 16  # nb of electrodes
 use_customize_shape = False
 if use_customize_shape:
     # Mesh shape is specified with fd parameter in the instantiation, e.g : fd=thorax
-    mesh_obj = mesh.create(n_el, h0=0.125, fd=thorax)
+    mesh_obj = mesh.create(n_el, h0=0.08, fd=thorax)
 else:
-    mesh_obj = mesh.create(n_el, h0=0.125)
+    mesh_obj = mesh.create(n_el, h0=0.08)
 
 # extract node, element, alpha
 pts = mesh_obj.node
@@ -120,35 +120,39 @@ def animating(i):
         print("waiting")
         time.sleep(0.5)
         pass
-    time_start_0 = float(time.time() % (24 * 3600))
+    time_start_0 = time.time()
 
     s1 = get_difference_img_array()
-    time_end_0 = float(time.time() % (24 * 3600))
+    time_end_0 = time.time()
     print("Get diff arr: ", time_end_0 - time_start_0)   
 
-    time_start_0 = float(time.time() % (24 * 3600))
+    time_start_0 = time.time()
     v1 = convert_data_in(s1)
-    time_end_0 = float(time.time() % (24 * 3600))
+    time_end_0 = time.time()
     print("Convert data: ", time_end_0 - time_start_0)
 
-    time_start_0 = float(time.time() % (24 * 3600))
-    ds = eit.solve(v1, v0, normalize=True)
-    time_end_0 = float(time.time() % (24 * 3600))
+    time_start_0 = time.time()
+    try:
+        ds = eit.solve(v1, v0, normalize=True)
+    except Exception as e:
+        ani.event_source.stop()  # Stop the current animation
+        ani.event_source.start()  # Start a new animation
+    time_end_0 = time.time()
     print("Solve: ", time_end_0 - time_start_0)
     
-    time_start_0 = float(time.time() % (24 * 3600))
+    time_start_0 = time.time()
     ds_n = sim2pts(pts, tri, np.real(ds))
-    time_end_0 = float(time.time() % (24 * 3600))
+    time_end_0 = time.time()
     print("sim2pts: ", time_end_0 - time_start_0)   
     # plot ground truth
-
-    time_start_0 = float(time.time() % (24 * 3600))
+    ax.clear()
+    time_start_0 = time.time()
     # plot EIT reconstruction
     im = ax.tripcolor(x, y, tri, ds_n, shading="flat")
     for i, e in enumerate(mesh_obj.el_pos):
         ax.annotate(str(i + 1), xy=(x[e], y[e]), color="r")
     ax.set_aspect("equal")
-    time_end_0 = float(time.time() % (24 * 3600))
+    time_end_0 = time.time()
     print("plot: ", time_end_0 - time_start_0)
     # plt.savefig('../doc/images/demo_jac.png', dpi=96)
 
