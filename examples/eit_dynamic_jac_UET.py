@@ -148,7 +148,7 @@ def animating(i):
     ax.clear()
     time_start_0 = time.time()
     # plot EIT reconstruction
-    im = ax.tripcolor(x, y, tri, ds_n, shading="flat")
+    im = ax.tripcolor(x, y, tri, ds_n, shading="flat", cmap=plt.cm.magma)
     for i, e in enumerate(mesh_obj.el_pos):
         ax.annotate(str(i + 1), xy=(x[e], y[e]), color="r")
     ax.set_aspect("equal")
