@@ -43,9 +43,8 @@ fwd = EITForward(mesh_obj, protocol_obj)
 
 
 v0 = np.loadtxt('examples/example_data/ref_data.txt')
-v1 = np.loadtxt('examples/example_data/diff_left_data.txt')
-print(len(v0))
-print(len(v1))
+v1 = np.loadtxt('examples/example_data/diff_middle_data.txt')
+
 #v0 = fwd.solve_eit()
 #v1 = fwd.solve_eit(perm=mesh_new.perm)
 time_start_0 = float(time.time() % (24 * 3600))
@@ -67,7 +66,7 @@ fig, ax = plt.subplots(constrained_layout=True)
 
 
 # plot EIT reconstruction
-im = ax.tripcolor(x, y, tri, ds_n, shading="flat")
+im = ax.tripcolor(x, y, tri, ds_n, shading="flat", cmap=plt.cm.magma)
 for i, e in enumerate(mesh_obj.el_pos):
     ax.annotate(str(i + 1), xy=(x[e], y[e]), color="r")
 ax.set_aspect("equal")
