@@ -20,7 +20,7 @@ import time
 from matplotlib.animation import FuncAnimation
 
 """-2. Initial vars """
-arduino = serial.Serial('COM5', 115200 ,timeout=4)
+arduino = serial.Serial('COM8', 115200 ,timeout=4)
 v0 = np.loadtxt('examples/example_data/ref_data.txt')
 fig, ax = plt.subplots(constrained_layout=True)
 n_el = 16
@@ -156,5 +156,5 @@ def animating(i):
     print("plot: ", time_end_0 - time_start_0)
     # plt.savefig('../doc/images/demo_jac.png', dpi=96)
 
-ani = FuncAnimation(fig, animating, interval = 200, cache_frame_data= False)
+ani = FuncAnimation(fig, animating, interval = 100, cache_frame_data= False)
 plt.show()

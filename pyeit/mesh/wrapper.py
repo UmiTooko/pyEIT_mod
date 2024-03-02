@@ -358,8 +358,10 @@ def create(
         raise TypeError("please specify lower and upper bound of bbox")
 
     if p_fix is None:
+        
         if n_dim == 2:
             if fd == shape.thorax:
+
                 p_fix = shape.thorax_pfix
             elif fd == shape.head_symm:
                 p_fix = shape.head_symm_pfix
@@ -411,7 +413,7 @@ class PyEITAnomaly_Circle(PyEITAnomaly):
 
     def mask(self, pts: np.ndarray) -> Any:
         pts = pts[:, :2].reshape((-1, 2))
-        return circle(pts, self.center[:2], self.r) < 0
+        return circle(pts, self.center[:1], self.r) < 0
 
 
 @dataclass

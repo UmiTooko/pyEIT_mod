@@ -11,7 +11,7 @@ import pyeit.eit.jac as jac
 import pyeit.mesh as mesh
 from pyeit.eit.fem import EITForward
 from pyeit.eit.interp2d import sim2pts
-from pyeit.mesh.shape import thorax, unit_circle
+from pyeit.mesh.shape import thorax
 import pyeit.eit.protocol as protocol
 from pyeit.mesh.wrapper import PyEITAnomaly_Circle
 
@@ -20,9 +20,9 @@ n_el = 16  # nb of electrodes
 use_customize_shape = False
 if use_customize_shape:
     # Mesh shape is specified with fd parameter in the instantiation, e.g : fd=thorax
-    mesh_obj = mesh.create(n_el, h0=0.075, fd=thorax)
+    mesh_obj = mesh.create(n_el, h0=0.065, fd=thorax)
 else:
-    mesh_obj = mesh.create(n_el, h0=0.075)
+    mesh_obj = mesh.create(n_el, h0=0.065)
 
 # extract node, element, alpha
 pts = mesh_obj.node
@@ -31,7 +31,7 @@ x, y = pts[:, 0], pts[:, 1]
 
 """ 1. problem setup """
 # mesh_obj["alpha"] = np.random.rand(tri.shape[0]) * 200 + 100 # NOT USED
-anomaly = PyEITAnomaly_Circle(center=[0.5, 0.5], r=0.1, perm=100.0)
+anomaly = PyEITAnomaly_Circle(center=[0.5, 0.5], r=0.1, perm=1000.0)
 mesh_new = mesh.set_perm(mesh_obj, anomaly=anomaly)
 
 """ 2. FEM simulation """
@@ -42,12 +42,12 @@ protocol_obj = protocol.create(n_el, dist_exc=1, step_meas=1, parser_meas="std")
 fwd = EITForward(mesh_obj, protocol_obj)
 
 
-v0 = np.loadtxt('examples/example_data/ref_data.txt')
-v1 = np.loadtxt('examples/example_data/diff_middle_data.txt')
+v0 = np.loadtxt('example_data/ref_data.txt')
+v1 = np.loadtxt('example_data/diff_middle_data.txt')
 
 #v0 = fwd.solve_eit()
 #v1 = fwd.solve_eit(perm=mesh_new.perm)
-time_start_0 = float(time.time() % (24 * 3600))
+
 
 """ 3. JAC solver """
 # Note: if the jac and the real-problem are generated using the same mesh,
@@ -72,8 +72,7 @@ for i, e in enumerate(mesh_obj.el_pos):
 ax.set_aspect("equal")
 
 fig.colorbar(im, ax=ax)
-time_end_0 = float(time.time() % (24 * 3600))
-run_time_total = time_end_0 - time_start_0
-print('Run time: ',run_time_total)
+
+
 # plt.savefig('../doc/images/demo_jac.png', dpi=96)
 plt.show()
