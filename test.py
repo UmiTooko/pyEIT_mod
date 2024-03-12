@@ -1,12 +1,13 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib.colors import TwoSlopeNorm
+from scikitlearn.linear_model import LinearRegression
 
-x, y = np.meshgrid(np.linspace(0,50,51), np.linspace(0,50,51))
-z = np.linspace(-2,4,50*50).reshape(50,50)
+a = np.array([[1, 1],
+              [2, 2],
+              [3, 8]])
+model = LinearRegression()
+model.fit(a)
+print(model._coef)
 
-norm = TwoSlopeNorm(vcenter=0)
-pc = plt.pcolormesh(x,y,z, norm=norm, cmap="RdBu_r")
-plt.colorbar(pc)
-
-plt.show()
+#plt.scatter(a[:,0:1], a[:,1:2])
+#plt.plot()

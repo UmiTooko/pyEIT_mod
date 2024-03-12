@@ -40,18 +40,18 @@ delta_perm = np.real(mesh_new.perm - mesh_obj.perm)
 
 """ 2. FEM forward simulations """
 # setup EIT scan conditions
-protocol_obj = protocol.create(n_el, dist_exc=1, step_meas=1, parser_meas="std")
+protocol_obj = protocol.create(n_el, dist_exc=1, step_meas=1, parser_meas="fmmu")
 
 # calculate simulated data
 fwd = EITForward(mesh_obj, protocol_obj)
-v0 = np.loadtxt('examples/example_data/ref_data.txt')
-v1 = np.loadtxt('examples/example_data/diff_left_data.txt')
+v0 = np.loadtxt('example_data/ref_data.txt')
+v1 = np.loadtxt('example_data/diff_left_data.txt')
 print(len(v0))
 print(len(v1))
 
 """ 3. Construct using GREIT """
 eit = greit.GREIT(mesh_obj, protocol_obj)
-eit.setup(p=0.50, lamb=0.01, perm=1, jac_normalized=True)
+eit.setup(p=0.80, lamb=0.4, perm=1, jac_normalized=True)
 ds = eit.solve(v1, v0, normalize=True)
 x, y, ds = eit.mask_value(ds, mask_value=np.NAN)
 
