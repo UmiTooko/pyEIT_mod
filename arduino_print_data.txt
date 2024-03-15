@@ -1,0 +1,203 @@
+
+/* --- STRUCTURE BY MR JOHNY TUAN---------
+  32 ELECTRODE- EIT VER 1.0
+  ---- AD9805 sinewave generator
+  ---- 3 ic 74HC595 24 bits shift for controlling 2 x 32 channels
+*/
+//==#include "AD9805.h"
+
+//-----------Define shift 24 bits control------------//
+#define S_data PB12
+#define S_latch PB13
+#define S_clock PB14
+#define LED_GREEN PB10
+#define LED_WRITE PB11
+//----define pin of arduino for AD9850------------
+#define DDS_CLOCK 125000000
+#define CLK1 PB5  // pin connections for DDS
+#define LOAD PB8  // FQU FREQUENCY LOAD
+#define DATA PB7
+#define RESET PB6
+#define CLK2 PB9
+
+int ADC_0 = PA0;
+int ADC_1 = PA1;
+int ADC_3 = PA4;
+
+long channel[16] = { 0, 1, 65, 66, 130, 131, 195, 196, 260, 261, 325, 326, 390, 391, 455, 448 };
+
+float data_ADC0[16][14];  //dien ap chan ADC0
+float data_ADC1[16][14];  //dien ap chan ADC1
+float data_ADC2[16][14];  //tong tro
+//-----------------------------------------------------------
+HardwareSerial Serial2(USART2);  // PA3  (RX)  PA2  (TX)
+void setup() {
+  // put your setup code here, to run once:
+  Serial2.begin(115200);
+  pinMode(LED_GREEN, OUTPUT);
+  pinMode(S_latch, OUTPUT);
+  pinMode(S_data, OUTPUT);
+  pinMode(S_clock, OUTPUT);
+  pinMode(LED_WRITE,OUTPUT);
+  // pinMode(oePin,      OUTPUT);
+  digitalWrite(LED_WRITE,LOW);
+  digitalWrite(S_clock, LOW);
+  digitalWrite(S_data, LOW);
+  digitalWrite(S_latch, LOW);
+  //digitalWrite(oePin,    LOW);
+  //setup AD9850
+  pinMode(DATA, OUTPUT);
+  pinMode(CLK1, OUTPUT);
+  pinMode(CLK2, OUTPUT);
+  pinMode(LOAD, OUTPUT);
+  pinMode(RESET, OUTPUT);
+
+  analogReadResolution(12);
+  pinMode(PA0, INPUT_ANALOG);
+  AD9850_init();          //khoi tao ic phat xung AD9850
+  AD9850_reset();         //reset ic phat xung
+  SetFrequency(0, 0, 0);  //dat tan so, pha =0
+  AD9850_reset();
+  SetFrequency(35000, 0, 88);  //set tan so 85kHz, 2 xung pha 0 va 90
+}
+// -- Scan 32 electrodes measurement  function-----
+void load_channel(unsigned long pattern) {
+  digitalWrite(S_latch, LOW);  //isolate register IO out prepare for bits shift
+  shiftOut(S_data, S_clock, MSBFIRST, pattern >> 16);
+  shiftOut(S_data, S_clock, MSBFIRST, pattern >> 8);
+  shiftOut(S_data, S_clock, MSBFIRST, pattern);
+
+  digitalWrite(S_latch, HIGH);  // output enable
+}
+void Scanner() {
+
+  Serial2.println("s");           //new frame
+  for (long i = 0; i < 16; i++) {
+    for (int j = 0; j < 13; j++) {
+      digitalWrite(LED_GREEN, LOW);
+      
+      unsigned long outchannel = channel[i];  // put channel i to output
+      int step_up = i + j + 2;
+      if (step_up > 15)
+        step_up = step_up - 16;
+
+      outchannel = (outchannel << 12);
+      outchannel = outchannel | channel[step_up];
+      load_channel(outchannel);
+      //data_ADC0[i][j] =  (3.2*analogRead(ADC_0))/2000;
+      // data_ADC0[i][j] = (3.2*analogRead(ADC_0))/2000;
+
+      //  Tính phần thực
+      float data1 = analogRead(ADC_0);
+      float data2 = analogRead(ADC_0);
+      float data3 = analogRead(ADC_0);
+      data_ADC0[i][j] = (3.2 * (data1 + data2 + data3)) / 6000; // Tinh thuc
+      // ================
+      /*
+      //  Tính phần ảo
+      float data4 = analogRead(ADC_1);
+      float data5 = analogRead(ADC_1);
+      float data6 = analogRead(ADC_1);
+      data_ADC1[i][j] = (3.2 * (data4 + data5 + data6)) / 6000;  //Tinh ao
+      //  ============
+      */
+      // Tình tổng thực ảo
+      //data_ADC2[i][j] = sqrt(pow(data_ADC0[i][j], 2) + pow(data_ADC1[i][j], 2)); // Tinh tong
+      // =================
+
+      //Serial2.print(data_ADC2[i][j]);           //print Tong
+      Serial2.print(data_ADC0[i][j]);         //print thuc
+
+      Serial2.print(" ");             
+      digitalWrite(LED_GREEN, HIGH);
+    }
+    Serial2.println(" ");            
+    //delay(1);
+  }
+}
+
+
+//----------------------AD9850----------------
+void AD9850_init() {
+  digitalWrite(RESET, LOW);
+  digitalWrite(CLK1, LOW);
+  digitalWrite(LOAD, LOW);
+  digitalWrite(DATA, LOW);
+  digitalWrite(CLK2, LOW);
+}
+
+void AD9850_reset() {
+  //reset sequence is:
+  // CLOCK & LOAD = LOW
+  //  Pulse RESET high for a few uS (use 5 uS here)
+  //  Pulse CLOCK high for a few uS (use 5 uS here)
+  //  Set DATA to ZERO and pulse LOAD for a few uS (use 5 uS here)
+
+  // data sheet diagrams show only RESET and CLOCK being used to reset the device, but I see no output unless I also
+  // toggle the LOAD line here.
+
+  digitalWrite(CLK1, LOW);
+  digitalWrite(CLK2, LOW);
+  digitalWrite(LOAD, LOW);
+
+  digitalWrite(RESET, LOW);
+  delayMicroseconds(5);
+  digitalWrite(RESET, HIGH);  //pulse RESET
+  delayMicroseconds(5);
+  digitalWrite(RESET, LOW);
+  delayMicroseconds(5);
+
+  digitalWrite(CLK1, LOW);
+  delayMicroseconds(5);
+  digitalWrite(CLK1, HIGH);  //pulse CLOCK
+  delayMicroseconds(5);
+  digitalWrite(CLK1, LOW);
+  //delayMicroseconds(5);
+  digitalWrite(CLK2, LOW);
+  delayMicroseconds(5);
+  digitalWrite(CLK2, HIGH);  //pulse CLOCK
+  delayMicroseconds(5);
+  digitalWrite(CLK2, LOW);
+  delayMicroseconds(5);
+  digitalWrite(DATA, LOW);  //make sure DATA pin is LOW
+
+  digitalWrite(LOAD, LOW);
+  delayMicroseconds(5);
+  digitalWrite(LOAD, HIGH);  //pulse LOAD
+  delayMicroseconds(5);
+  digitalWrite(LOAD, LOW);
+  // Chip is RESET now
+}
+void SetFrequency(unsigned long frequency, unsigned long phase, unsigned long phase1) {
+  unsigned long ph = phase << 3;
+  unsigned long ph1 = phase1 << 3;
+  unsigned long tuning_word = (frequency * pow(2, 32)) / DDS_CLOCK;
+  //unsigned long tuning_word = (frequency * 4294967296.0) / DDS_CLOCK;
+
+  unsigned long tuning_word2 = (frequency * pow(2, 32)) / DDS_CLOCK;
+  digitalWrite(LOAD, LOW);
+  shiftOut(DATA, CLK1, LSBFIRST, tuning_word);
+  shiftOut(DATA, CLK1, LSBFIRST, tuning_word >> 8);
+  shiftOut(DATA, CLK1, LSBFIRST, tuning_word >> 16);
+  shiftOut(DATA, CLK1, LSBFIRST, tuning_word >> 24);
+  shiftOut(DATA, CLK1, LSBFIRST, ph & 0xFF);
+  shiftOut(DATA, CLK2, LSBFIRST, tuning_word2);
+  shiftOut(DATA, CLK2, LSBFIRST, tuning_word2 >> 8);
+  shiftOut(DATA, CLK2, LSBFIRST, tuning_word2 >> 16);
+  shiftOut(DATA, CLK2, LSBFIRST, tuning_word2 >> 24);
+  shiftOut(DATA, CLK2, LSBFIRST, ph1 & 0xFF);
+  digitalWrite(LOAD, HIGH);
+}
+
+//----------------------------------------------------------------
+void loop() {
+  //put your main code here, to run repeatedly:
+   char receivedChar;
+  //receivedChar = Serial2.read();   //Read finish char for python
+  Serial2.print("Received Char = ");
+   //Serial2.print(receivedChar);
+  if (receivedChar== 'f' ){
+    Scanner();   
+  }
+  delay(10);
+}

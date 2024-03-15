@@ -28,16 +28,17 @@ def parse_args():
     parser.add_argument("--port", type=str, required=True, help="Serial port for Arduino.")
     parser.add_argument("--ref", help="Measure ref_data.", default = False, action="store_true")
     parser.add_argument("--h0", type = float, help="Mesh size.", default = 0.065)
-    parser.add_argument("--p", type = float, help="Value p in Jacobian.", default = 0.8)
-    parser.add_argument("--lamb", type = float, help="Value lambda in Jacobian.", default = 0.5)
+    parser.add_argument("--p", type = float, help="Value p in Jacobian.", default = 0.2)
+    parser.add_argument("--lamb", type = float, help="Value lambda in Jacobian.", default = 0.005)
     parser.add_argument("--perm", type = float, help="Value permittivity.", default = 10)
     parser.add_argument("--norm", type = str, help="Normalized center value for 0 in colorbar.", default = None)
     parser.add_argument("--truth", help="Plot the truth image.", default = False, action = 'store_true')
+    parser.add_argument("--testdata", help="Testing data", default = False, action = 'store_true')
 
-    parser.add_argument("--static", help="Reconstructed 1 frame.", default = False, action="store_true")
-    parser.add_argument("--name", type = str, help="Specific a name for figure. Format h0_p_lambda__\{name\} (for static and ref mode).")
+    parser.add_argument("--static", help="Reconstruct 1 frame.", default = False, action="store_true")
+    parser.add_argument("--name", type = str, help="Specific a name for figure. Format h0_p_lambda__<name> (for static and ref mode).", default= None)
     parser.add_argument("--realtime", help="Run realtime.", default = False, action="store_true")
-    parser.add_argument("--interval", type=int, default=50, help="Animation interval in milliseconds (for realtime mode).")
+    parser.add_argument("--interval", type=int, default = 50, help="Animation interval in milliseconds (for realtime mode).")
     return parser.parse_args()
 
 def main():
@@ -50,6 +51,9 @@ def main():
         check +=1
     if arg.realtime == True:
         check +=1
+    if arg.testdata == True:
+        check +=1
+        
     if check > 1:
         print("Chỉ có thể chạy một trong các chức năng cùng lúc: ref, realtime, static. Hãy thử lại.")
         return
@@ -63,6 +67,7 @@ def main():
     if not os.path.exists("data"):
         os.makedirs("data")
         print("Đã tạo folder data")
+
 
     
     """-2. Initial vars """
@@ -92,21 +97,34 @@ def main():
         while(True):
             try:
                 data = arduino.readline().decode('ascii')
-                print("data: ", data)
+                #print("data: ", data)
                 break
             except UnicodeDecodeError:
                 print("UnicodeDecodeError found! Retrying...")
                 continue
         return data
-
+    
+    def readfromArduinoTest():
+        while(True):
+            data = arduino.readline()
+            try:
+                data = data.decode('ascii')
+                #print("data: ", data)
+                break
+            except UnicodeDecodeError:
+                print("UnicodeDecodeError found! ")
+                print('data: ',data)
+                continue
+        return data
+    
     def get_difference_img_array(n_el = n_el, NewFrameSearchFlag = 1, idx = 0):
         difference_image_array = ''
         # Read the voltage data:
         while idx < n_el:
             data = readfromArduino()
-            #Skip until the header (which is a single charactẻ 's') is found
+            #Skip until the header (which is a single character 's') is found
             while(NewFrameSearchFlag == 1):
-                if len(data) > 4:
+                if len(data) > 20:
                     print("Searching for new frame.")
                     data = readfromArduino()
                     continue
@@ -139,7 +157,16 @@ def main():
                 items.append(float(0))
         return np.array(items)
 
-
+    if arg.testdata == True:
+        count = 0
+        while True:
+            if count == 10:
+                arduino.write('f'.encode('utf-8'))
+                print("Sent ", 'f'.encode('utf-8'))
+                count = 0
+            data = readfromArduinoTest()
+            count+=1
+            time.sleep(0.1)
  
     n_el = 16  # nb of electrodes
     mesh_obj = mesh.create(n_el, h0=arg.h0)
@@ -157,24 +184,26 @@ def main():
         arg.perm = 10
     eit.setup(p=arg.p, lamb=arg.lamb, method="kotre", perm = arg.perm, jac_normalized=True)
 
+    arduino.write('f'.encode('utf-8'))
 
     def animating(i, flag):  
+
         s_time = time.time()
         while arduino.inWaiting()==0:
-            print("waiting")
+            #print("waiting")
             pass
 
         s1 = get_difference_img_array()
 
         v1 = convert_data_in(s1)
-
         try:
             ds = eit.solve(v1, v0, normalize=True)
             ds_n = sim2pts(pts, tri, np.real(ds))
         except Exception as e:
             if flag == 1:
-                ani.event_source.stop()   # Stop the current animation
-                ani.event_source.start()  # Start a new animation
+                print("Error found: ", e)
+                ds = eit.solve(v0, v0, normalize=True)
+                ds_n = sim2pts(pts, tri, np.real(ds))
             else:
                 print("Data error, try again!")
                 return
@@ -186,7 +215,7 @@ def main():
             min_dsn = min(ds_n)
 
             average_positive =   1 * average + (abs(max_dsn) - average)/ 2
-            average_negative = - 1 * average - (abs(min_dsn) - average)/ 2
+            average_negative = - 1 * average - (abs(min_dsn) - average)/ 4
             if average_positive < 0.4:
                 average_positive +=0.4
             if average_negative > -0.4:
@@ -204,7 +233,6 @@ def main():
                     ds_n[i] = 0
         # Clear the graph after each animating frame
         ax.clear()
-
         # Plot EIT reconstruction
         if arg.norm != None:
             if arg.norm == 'auto':
@@ -225,12 +253,16 @@ def main():
         plt.title("p = {} | lambda = {}".format(arg.p, arg.lamb))
         if flag == 0:
              plt.colorbar(im, ax=ax)
+        arduino.write('f'.encode('utf-8'))
+        print("Sent ", 'f'.encode('utf-8'))
         print("Run time = {}\n".format(time.time() - s_time))
 
 
 
     
     if arg.ref == True:
+        arduino.write('f'.encode('utf-8'))
+
         while arduino.inWaiting()==0:
             print("waiting")
             time.sleep(0.5)
@@ -245,7 +277,8 @@ def main():
     if arg.static == True:
         animating(0, flag = 0)
         print("avg_ref = ", average_ref)
-        plt.savefig('./images/{}_{}_{}___{}.png'.format(str(arg.h0), str(arg.p), str(arg.lamb), arg.name), dpi=96)
+        if arg.name != None:
+            plt.savefig('./images/{}_{}_{}___{}.png'.format(str(arg.h0), str(arg.p), str(arg.lamb), arg.name), dpi=96)
         plt.show()
     if arg.realtime == True:
         ani = FuncAnimation(fig, animating, fargs=(1,), interval = arg.interval, cache_frame_data= False)

@@ -90,6 +90,7 @@ class JAC(EitBase):
             # p=0   : noise distribute on the boundary ('dgn')
             # p=0.5 : noise distribute on the middle
             # p=1   : noise distribute on the center ('lm')
+            #r_mat = np.eye(np.shape(j_w_j)[0]) ** p
             r_mat = np.diag(np.diag(j_w_j) ** p)
         elif method == "lm":
             # Marquardt–Levenberg, 'lm' for short

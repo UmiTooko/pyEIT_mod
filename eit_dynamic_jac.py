@@ -21,8 +21,8 @@ from pyeit.mesh.wrapper import PyEITAnomaly_Circle
 n_el = 16  # nb of electrodes
 
 #the higher of p and the lower of lamb -> good shape image. Should be tunning
-p = 0.8
-lamb = 0.02
+p = 0.5
+lamb = 0.05
 use_customize_shape = False
 h0 = 0.05
 mesh_obj = mesh.create(n_el, h0=h0)
@@ -57,7 +57,7 @@ time_s = time.time()
 # (mostly) the shape and the electrode positions are not exactly the same
 # as in mesh generating the jac, then data must be normalized.
 eit = jac.JAC(mesh_obj, protocol_obj)
-eit.setup(p=0.2,lamb=0.3, method="kotre", perm=None, jac_normalized=True)
+eit.setup(p=0.2,lamb=0.5, method="kotre", perm=None, jac_normalized=True)
 ds = eit.solve(v1, v0, normalize=True, log_scale=False)
 #ds = eit.solve_gs(v1, v0)
 #ds = eit.jt_solve(v1, v0, normalize=True)
@@ -73,6 +73,35 @@ print('ds_n_0=\n', ds_n)
 #
 #print('ds_n_1=\n', ds_n)
 # plot ground truth
+#
+#average = np.average(ds_n) 
+#print(ds_n)
+#max_dsn = max(ds_n)
+#min_dsn = min(ds)
+#average_positive =   1 * average + (abs(max_dsn) - average)/ 2
+#average_negative = - 1 * average - (abs(min_dsn) - average)/ 6
+#if average_positive < 0.4:
+#     average_positive +=0.4
+#if average_negative > -0.4:
+#     average_negative -=0.4
+#print('avg: ',average)
+#print('avg+: ',average_positive)
+#print('avg-: ',average_negative)
+#for i in range(len(ds_n)):
+#     if ds_n[i] > average_positive:
+#         ds_n[i] = 10 
+#     elif ds_n[i] < average_negative:
+#         ds_n[i] = -10 
+#     else:
+#         ds_n[i] = 0
+
+
+
+
+
+
+
+
 fig, ax = plt.subplots(constrained_layout=True)
 
 norm = TwoSlopeNorm(vcenter=-0.5)

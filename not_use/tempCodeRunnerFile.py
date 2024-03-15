@@ -1,0 +1,1 @@
+x[triangles].mean(axis=1)
