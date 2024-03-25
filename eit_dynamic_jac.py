@@ -17,14 +17,19 @@ from pyeit.mesh.shape import thorax, rectangle
 import pyeit.eit.protocol as protocol
 from pyeit.mesh.wrapper import PyEITAnomaly_Circle
 
+
+
+import trivia_func as tf
+
+
 """ 0. build mesh """
 n_el = 16  # nb of electrodes
 
 #the higher of p and the lower of lamb -> good shape image. Should be tunning
-p = 0.5
-lamb = 0.05
+p = 0.2
+lamb = 10000
 use_customize_shape = False
-h0 = 0.05
+h0 = 0.04
 mesh_obj = mesh.create(n_el, h0=h0)
 # extract node, element, alpha
 pts = mesh_obj.node
@@ -48,7 +53,8 @@ protocol_obj = protocol.create(n_el, dist_exc=1, step_meas=1, parser_meas="fmmu"
 #v1 = fwd.solve_eit(perm=mesh_new.perm)
 
 v0 = np.loadtxt('data/ref_data.txt')
-v1 = np.loadtxt('example_data/diff_middle_data.txt')
+v1 = np.loadtxt('data/diff_data.txt')
+
 time_s = time.time()
 """ 3. JAC solver """
 # Note: if the jac and the real-problem are generated using the same mesh,
@@ -57,7 +63,7 @@ time_s = time.time()
 # (mostly) the shape and the electrode positions are not exactly the same
 # as in mesh generating the jac, then data must be normalized.
 eit = jac.JAC(mesh_obj, protocol_obj)
-eit.setup(p=0.2,lamb=0.5, method="kotre", perm=None, jac_normalized=True)
+eit.setup(p=p,lamb=lamb, method="kotre", perm=10, jac_normalized=True)
 ds = eit.solve(v1, v0, normalize=True, log_scale=False)
 #ds = eit.solve_gs(v1, v0)
 #ds = eit.jt_solve(v1, v0, normalize=True)
@@ -74,28 +80,52 @@ print('ds_n_0=\n', ds_n)
 #print('ds_n_1=\n', ds_n)
 # plot ground truth
 #
-#average = np.average(ds_n) 
-#print(ds_n)
-#max_dsn = max(ds_n)
-#min_dsn = min(ds)
-#average_positive =   1 * average + (abs(max_dsn) - average)/ 2
-#average_negative = - 1 * average - (abs(min_dsn) - average)/ 6
-#if average_positive < 0.4:
-#     average_positive +=0.4
-#if average_negative > -0.4:
-#     average_negative -=0.4
-#print('avg: ',average)
-#print('avg+: ',average_positive)
-#print('avg-: ',average_negative)
-#for i in range(len(ds_n)):
-#     if ds_n[i] > average_positive:
-#         ds_n[i] = 10 
-#     elif ds_n[i] < average_negative:
-#         ds_n[i] = -10 
-#     else:
-#         ds_n[i] = 0
 
+mean_dsn = np.mean(ds_n)
+print("Mean dsn: ", mean_dsn)
+std_dsn = np.std(ds_n)
+print("Std dsn, ", std_dsn)
+print(ds_n)
 
+#fig, axs = plt.subplots(1, 1, sharey=True, tight_layout=True)
+#axs.hist(ds_n, bins=100)
+#plt.show()
+#quit()
+if 0:
+    print(ds_n)
+    max_dsn = max(ds_n)
+    min_dsn = min(ds_n)
+    
+    average_positive =   1 * mean_dsn + std_dsn * 1
+    average_negative =   1 * mean_dsn - std_dsn * 1
+    #if average_positive < 0.4:
+    #    average_positive +=0.4
+    #if average_negative > -0.4:
+    #    average_negative -=0.4
+    print('avg: ',mean_dsn)
+    print('avg+: ',average_positive)
+    print('avg-: ',average_negative)
+    for i in range(len(ds_n)):
+        if ds_n[i] > average_positive:
+            ds_n[i] = 10 
+        elif ds_n[i] < average_negative:
+            ds_n[i] = -10 
+        else:
+            ds_n[i] = 0
+
+if 0:
+
+    average_positive =   1 * mean_dsn + std_dsn * 0.8
+    average_negative =   1 * mean_dsn - std_dsn * 0.8
+    print("avg+ ",average_positive)
+    print("avg- ",average_negative)
+    for i in range(len(ds_n)):
+        if ds_n[i] > average_positive:
+            ds_n[i] = tf.amplify_normal_distribution(ds_n[i], mean_dsn, std_dsn, 1.75,2)
+        if ds_n[i] < average_negative:
+            ds_n[i] = tf.amplify_normal_distribution(ds_n[i], mean_dsn, std_dsn, 1.75,2)
+        else:
+            ds_n[i] = tf.amplify_normal_distribution(ds_n[i], mean_dsn, std_dsn, 0.25,.5)
 
 
 
@@ -104,7 +134,7 @@ print('ds_n_0=\n', ds_n)
 
 fig, ax = plt.subplots(constrained_layout=True)
 
-norm = TwoSlopeNorm(vcenter=-0.5)
+norm = TwoSlopeNorm(vcenter=0)
 #norm = TwoSlopeNorm(vmin = -max_dsn * 50, vcenter=0, vmax = max_dsn * 50)
 # plot EIT reconstruction
 im = ax.tripcolor(x, y, tri, ds_n, norm = norm, shading="flat", cmap=plt.cm.magma)
@@ -114,7 +144,7 @@ ax.set_aspect("equal")
 
 fig.colorbar(im, ax=ax)
 
-plt.title("p = 0.2 | lambda = 0.2")
+plt.title("p = {} | lambda = {}".format(p, lamb))
 
 #for d in data:
 #    print(d)

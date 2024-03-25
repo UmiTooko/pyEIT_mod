@@ -22,6 +22,9 @@ from matplotlib.colors import TwoSlopeNorm
 
 import argparse
 import os
+
+
+import trivia_func as tf
 """ -3. CLI """
 def parse_args():
     parser = argparse.ArgumentParser(description="University of Engineering and Technology VNU - Electronic Impedance Tomography")
@@ -33,7 +36,7 @@ def parse_args():
     parser.add_argument("--perm", type = float, help="Value permittivity.", default = 10)
     parser.add_argument("--norm", type = str, help="Normalized center value for 0 in colorbar.", default = None)
     parser.add_argument("--truth", help="Plot the truth image.", default = False, action = 'store_true')
-    parser.add_argument("--testdata", help="Testing data", default = False, action = 'store_true')
+    parser.add_argument("--nor_dis_amp", help="Amplifing value based on its distance from the mean value (the ds_n itself is a normal distribution). The further the higher gain.", default = False, action = 'store_true')
 
     parser.add_argument("--static", help="Reconstruct 1 frame.", default = False, action="store_true")
     parser.add_argument("--name", type = str, help="Specific a name for figure. Format h0_p_lambda__<name> (for static and ref mode).", default= None)
@@ -51,8 +54,7 @@ def main():
         check +=1
     if arg.realtime == True:
         check +=1
-    if arg.testdata == True:
-        check +=1
+  
         
     if check > 1:
         print("Chỉ có thể chạy một trong các chức năng cùng lúc: ref, realtime, static. Hãy thử lại.")
@@ -78,12 +80,13 @@ def main():
     if(arg.ref == False):
         try:
             v0 = np.loadtxt('data/ref_data.txt')
-            average_ref = np.average(v0) * arg.perm / 10
+            average_ref = np.average(v0) 
+
 
         except Exception as e:
             print("Không tìm thấy dữ liệu tham chiếu ref.txt. Hãy sử dụng --ref để thu thập giá trị tham chiếu hoặc kiểm tra lại đường dẫn")
             return
-    # Filter positive values using boolean indexing
+
 
     """-1. Functions """
 
@@ -97,7 +100,7 @@ def main():
         while(True):
             try:
                 data = arduino.readline().decode('ascii')
-                #print("data: ", data)
+                #print(data)
                 break
             except UnicodeDecodeError:
                 print("UnicodeDecodeError found! Retrying...")
@@ -113,7 +116,7 @@ def main():
                 break
             except UnicodeDecodeError:
                 print("UnicodeDecodeError found! ")
-                print('data: ',data)
+                #print('data: ',data)
                 continue
         return data
     
@@ -157,16 +160,6 @@ def main():
                 items.append(float(0))
         return np.array(items)
 
-    if arg.testdata == True:
-        count = 0
-        while True:
-            if count == 10:
-                arduino.write('f'.encode('utf-8'))
-                print("Sent ", 'f'.encode('utf-8'))
-                count = 0
-            data = readfromArduinoTest()
-            count+=1
-            time.sleep(0.1)
  
     n_el = 16  # nb of electrodes
     mesh_obj = mesh.create(n_el, h0=arg.h0)
@@ -177,7 +170,7 @@ def main():
     x, y = pts[:, 0], pts[:, 1]
 
     protocol_obj = protocol.create(n_el, dist_exc=1, step_meas=1, parser_meas="fmmu")
-
+    cmap=plt.cm.magma
 
     eit = jac.JAC(mesh_obj, protocol_obj)
     if arg.truth == True:
@@ -199,6 +192,7 @@ def main():
         try:
             ds = eit.solve(v1, v0, normalize=True)
             ds_n = sim2pts(pts, tri, np.real(ds))
+        
         except Exception as e:
             if flag == 1:
                 print("Error found: ", e)
@@ -207,23 +201,28 @@ def main():
             else:
                 print("Data error, try again!")
                 return
+        #fig, axs = plt.subplots(1, 2, sharey=True, tight_layout=True)
+        #axs[0].hist(ds_n, bins=100)
+
+
+        if arg.norm != None:
+            mean_dsn = np.mean(ds_n)
+            
+
         if arg.truth == True:
-            print(arg.perm)
-            average = np.average(ds_n) 
-            print(ds_n)
-            max_dsn = max(ds_n)
-            min_dsn = min(ds_n)
-
-            average_positive =   1 * average + (abs(max_dsn) - average)/ 2
-            average_negative = - 1 * average - (abs(min_dsn) - average)/ 4
-            if average_positive < 0.4:
-                average_positive +=0.4
-            if average_negative > -0.4:
-                average_negative -=0.4
-            print('avg: ',average)
-            print('avg+: ',average_positive)
-            print('avg-: ',average_negative)
-
+            #print(ds_n)
+            mean_dsn = np.mean(ds_n)
+            std_dsn = np.std(ds_n)  
+            average_positive =   1 * mean_dsn + std_dsn * 0.85
+            average_negative =   1 * mean_dsn - std_dsn * 0.85
+            #if average_positive < 0.4:
+            #    average_positive +=0.4
+            #if average_negative > -0.4:
+            #    average_negative -=0.4
+            #print('avg: ',mean_dsn)
+            #print('avg+: ',average_positive)
+            #print('avg-: ',average_negative)
+#
             for i in range(len(ds_n)):
                 if ds_n[i] > average_positive:
                     ds_n[i] = 10 
@@ -231,21 +230,38 @@ def main():
                     ds_n[i] = -10 
                 else:
                     ds_n[i] = 0
+        else:
+         if arg.nor_dis_amp == True:
+            mean_dsn = np.mean(ds_n)
+            std_dsn = np.std(ds_n)  
+            average_positive =   1 * mean_dsn + std_dsn * 1.25
+            average_negative =   1 * mean_dsn - std_dsn * 1.25
+            print("avg+ ",average_positive)
+            print("avg- ",average_negative)
+            for i in range(len(ds_n)):
+                if ds_n[i] > average_positive or ds_n[i] < average_negative:
+                    ds_n[i] = tf.amplify_normal_distribution(ds_n[i], mean_dsn, std_dsn, 1.75,2)
+                else :
+                    ds_n[i] = tf.amplify_normal_distribution(ds_n[i], mean_dsn, std_dsn, 0.25,0.5)
+        #axs[1].hist(ds_n, bins=100)
         # Clear the graph after each animating frame
+        #axs[1].hist(ds_n, 100)
+        
         ax.clear()
         # Plot EIT reconstruction
         if arg.norm != None:
             if arg.norm == 'auto':
-                norm = TwoSlopeNorm(vcenter=average_ref)
+                norm = TwoSlopeNorm(vcenter=mean_dsn)
+                print("Norm: ", mean_dsn)
             else:
                 try:
                     norm = TwoSlopeNorm(vcenter=float(arg.norm))
                 except Exception as e:
                     print("Lỗi dữ liệu norm, hãy chắc chắn bạn nhập 'auto' hoặc một số.")
                     return
-            im = ax.tripcolor(x, y, tri, ds_n, norm = norm, shading="flat", cmap=plt.cm.magma)
+            im = ax.tripcolor(x, y, tri, ds_n, norm = norm, shading="flat", cmap=cmap)
         else:
-            im = ax.tripcolor(x, y, tri, ds_n, shading="flat", cmap=plt.cm.magma)
+            im = ax.tripcolor(x, y, tri, ds_n, shading="flat", cmap=cmap)
 
         for i, e in enumerate(mesh_obj.el_pos):
             ax.annotate(str(i + 1), xy=(x[e], y[e]), color="r")
@@ -253,8 +269,10 @@ def main():
         plt.title("p = {} | lambda = {}".format(arg.p, arg.lamb))
         if flag == 0:
              plt.colorbar(im, ax=ax)
+
         arduino.write('f'.encode('utf-8'))
-        print("Sent ", 'f'.encode('utf-8'))
+
+        #print("Sent ", 'f'.encode('utf-8'))
         print("Run time = {}\n".format(time.time() - s_time))
 
 
