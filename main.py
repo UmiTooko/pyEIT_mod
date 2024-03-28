@@ -80,13 +80,13 @@ def main():
     if(arg.ref == False):
         try:
             v0 = np.loadtxt('data/ref_data.txt')
-            average_ref = np.average(v0) 
 
 
         except Exception as e:
             print("Không tìm thấy dữ liệu tham chiếu ref.txt. Hãy sử dụng --ref để thu thập giá trị tham chiếu hoặc kiểm tra lại đường dẫn")
             return
-
+        average_ref = np.average(v0) 
+        
 
     """-1. Functions """
 
@@ -118,6 +118,7 @@ def main():
                 print("UnicodeDecodeError found! ")
                 #print('data: ',data)
                 continue
+
         return data
     
     def get_difference_img_array(n_el = n_el, NewFrameSearchFlag = 1, idx = 0):
@@ -279,12 +280,13 @@ def main():
 
     
     if arg.ref == True:
-        arduino.write('f'.encode('utf-8'))
+        char_flag = arduino.write('f'.encode('utf-8'))
 
         while arduino.inWaiting()==0:
-            print("waiting")
+            print("waiting | sent ", char_flag)
             time.sleep(0.5)
             pass
+
         s1 = get_difference_img_array()
         ref_v = ''
         with open('data/ref_data.txt', 'w') as f:
