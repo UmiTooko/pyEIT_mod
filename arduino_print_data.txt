@@ -93,6 +93,7 @@ void Scanner() {
       float data3 = analogRead(ADC_0);
       data_ADC0[i][j] = (3.2 * (data1 + data2 + data3)) / 6000; // Tinh thuc
       // ================
+
       /*
       //  Tính phần ảo
       float data4 = analogRead(ADC_1);
@@ -101,11 +102,12 @@ void Scanner() {
       data_ADC1[i][j] = (3.2 * (data4 + data5 + data6)) / 6000;  //Tinh ao
       //  ============
       */
-      // Tình tổng thực ảo
+      
+      // Tính tổng thực ảo
       //data_ADC2[i][j] = sqrt(pow(data_ADC0[i][j], 2) + pow(data_ADC1[i][j], 2)); // Tinh tong
       // =================
 
-      //Serial2.print(data_ADC2[i][j]);           //print Tong
+      //Serial2.print(data_ADC2[i][j]);       //print Tong
       Serial2.print(data_ADC0[i][j]);         //print thuc
 
       Serial2.print(" ");             
@@ -192,12 +194,15 @@ void SetFrequency(unsigned long frequency, unsigned long phase, unsigned long ph
 //----------------------------------------------------------------
 void loop() {
   //put your main code here, to run repeatedly:
-   char receivedChar;
-  //receivedChar = Serial2.read();   //Read finish char for python
-  Serial2.print("Received Char = ");
-   //Serial2.print(receivedChar);
+  
+  char receivedChar;
+  receivedChar = Serial2.read();   //Read finish char for python
+  //Serial2.print("Received Char = ");
+  //Serial2.print(receivedChar);
+  
   if (receivedChar== 'f' ){
     Scanner();   
   }
+  
   delay(10);
 }
