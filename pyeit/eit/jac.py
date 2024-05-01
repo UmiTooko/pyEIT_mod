@@ -55,7 +55,10 @@ class JAC(EitBase):
         self.J, self.v0 = self.fwd.compute_jac(perm=perm, normalize=jac_normalized)
         self.H = self._compute_h(self.J, p, lamb, method)
         self.is_ready = True
-
+        #self.v0 = np.zeros(np.shape(self.v0))
+        print("J = ", self.J)
+        print("v0 = ", self.v0)
+        print("H = ", self.H)
     def _compute_h(  # type: ignore[override]
         self, jac: np.ndarray, p: float, lamb: float, method: str = "kotre"
     ):

@@ -234,10 +234,16 @@ class EITForward(Forward):
 
         """
         # update k if necessary and calculate r=inv(k), dense matrix, slow
-        self.assemble_pde(perm)
+        
+        self.assemble_pde(perm) # not use ???
+        print("kg = ", self.kg)
+
+        print("self.mesh.el_pos = ", self.mesh.el_pos)
         r_mat = la.inv(self.kg.toarray())[self.mesh.el_pos]
         r_el = np.full((self.protocol.ex_mat.shape[0],) + r_mat.shape, r_mat)
+        print("r_el = ", r_el)
         # nodes potential
+
         f = self.solve_vectorized(self.protocol.ex_mat)
         f_el = f[:, self.mesh.el_pos]
         # build measurements and node resistance
@@ -264,8 +270,9 @@ class EITForward(Forward):
             jac[:, e] = np.sum(np.dot(ri[:, ijk], self.se[e]) * f_n[:, ijk], axis=1)
 
         # Jacobian normalization: divide each row of J (J[i]) by abs(v0[i])
-        if normalize:
+        if normalize and 0:
             jac = jac / np.abs(v0[:, None])
+#       return jac
         return jac, v0
 
     def compute_b_matrix(
@@ -471,6 +478,9 @@ def assemble(
         data = np.append(data, 1.0)
 
     # for efficient sparse inverse (csc)
+    print(sparse.csr_matrix((data, (row, col)), shape=(n_pts, n_pts)))
+
+
     return sparse.csr_matrix((data, (row, col)), shape=(n_pts, n_pts))
 
 

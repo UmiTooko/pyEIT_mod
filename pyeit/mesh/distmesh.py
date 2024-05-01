@@ -440,6 +440,7 @@ def build(
 
     # at the end of iteration, (p - pold) is small, so we recreate delaunay
     dm.triangulate()
-
+    #print("dm.p = \n", dm.p)
+    #print("dm.t = \n", dm.t)
     # you should remove duplicate nodes and triangles
     return dm.p, dm.t

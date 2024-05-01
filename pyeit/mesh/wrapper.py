@@ -17,7 +17,8 @@ from .mesh_circle import MeshCircle
 from .shape import ball, circle
 from .utils import check_order
 
-
+import matplotlib.pyplot as plt
+from matplotlib.collections import PolyCollection
 @dataclass
 class PyEITMesh:
     """
@@ -349,9 +350,11 @@ def create(
             bbox = np.array([[-1.2, -1.2, -1.2], [1.2, 1.2, 1.2]])
 
     # list is converted to Numpy array so we can use it then (calling shape method..)
-    bbox = np.array(bbox)
-    n_dim = bbox.shape[1]  # bring dimension
+    # bbox = np.array(bbox)
+    
 
+    n_dim = bbox.shape[1]  # bring dimension
+   
     if n_dim not in [2, 3]:
         raise TypeError("distmesh only supports 2D or 3D")
     if bbox.shape[0] != 2:
@@ -373,8 +376,51 @@ def create(
         elif n_dim == 3:
             p_fix = shape.fix_points_ball(n_el=n_el)
 
+    if 0:
+        x_coordinates = [coord[0] for coord in p_fix]
+        y_coordinates = [coord[1] for coord in p_fix]
+
+        # Plot the coordinates
+        plt.figure(figsize=(6, 6))
+        plt.scatter(x_coordinates, y_coordinates, color='blue')
+        plt.xlabel('X')
+        plt.ylabel('Y')
+        plt.title('Plot of Dot Coordinates')
+        plt.grid(True)
+        plt.show()
+    
     # 1. build mesh
     p, t = build(fd, fh, pfix=p_fix, bbox=bbox, h0=h0)
+    if 0:
+        x_coordinates = [coord[0] for coord in p]
+        y_coordinates = [coord[1] for coord in p]
+
+        # Plot the coordinates
+        plt.figure(figsize=(6, 6))
+        plt.scatter(x_coordinates, y_coordinates, color='blue')
+        plt.xlabel('X')
+        plt.ylabel('Y')
+        plt.title('Plot of Dot Coordinates')
+        plt.grid(True)
+        plt.show()
+    if 0:
+        # Extract x and y coordinates of vertices
+        x_coords = t[:, 0]
+        y_coords = t[:, 1]
+
+        # Prepare indices array to define triangles
+        indices = np.arange(len(t))
+
+        # Plot the triangles using tripcolor
+        plt.figure()
+        plt.tripcolor(x_coords, y_coords, indices, edgecolors='k', cmap='Reds')
+        plt.xlabel('X')
+        plt.ylabel('Y')
+        plt.title('Plot of Triangles')
+        plt.grid(True)
+        plt.colorbar(label='Triangle Index')
+        plt.show()
+
     # 2. check whether t is counter-clock-wise, otherwise reshape it
     t = check_order(p, t)
     # 3. generate electrodes, the same as p_fix (top n_el)

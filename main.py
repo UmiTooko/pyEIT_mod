@@ -30,7 +30,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description="University of Engineering and Technology VNU - Electronic Impedance Tomography")
     parser.add_argument("--port", type=str, required=True, help="Serial port for Arduino.")
     parser.add_argument("--ref", help="Measure ref_data.", default = False, action="store_true")
-    parser.add_argument("--h0", type = float, help="Mesh size.", default = 0.065)
+    parser.add_argument("--h0", type = float, help="Mesh size.", default = 0.06)
     parser.add_argument("--p", type = float, help="Value p in Jacobian.", default = 0.2)
     parser.add_argument("--lamb", type = float, help="Value lambda in Jacobian.", default = 0.005)
     parser.add_argument("--perm", type = float, help="Value permittivity.", default = 10)
@@ -232,7 +232,7 @@ def main():
                 else:
                     ds_n[i] = 0
         else:
-         if arg.nor_dis_amp == True:
+          if arg.nor_dis_amp == True:
             mean_dsn = np.mean(ds_n)
             std_dsn = np.std(ds_n)  
             average_positive =   1 * mean_dsn + std_dsn * 1.25

@@ -121,6 +121,7 @@ class EitBase(ABC):
         ds: np.ndarray
             complex-valued np.ndarray, changes of conductivities
         """
+
         self._check_solver_is_ready()
         dv = self._normalize(v1, v0) if normalize else v1 - v0
         ds = -np.dot(self.H, dv.transpose())  # s = -Hv
@@ -156,7 +157,7 @@ class EitBase(ABC):
         """
         Check if solver is ready for solving
 
-        Addtionaly test also if self.H not `None`
+        Addtionally test also if self.H not `None`
 
         Raises
         ------

@@ -184,9 +184,12 @@ def create(
         raise TypeError(f"{type(dist_exc)=} should be a List[int]")
 
     _ex_mat = [build_exc_pattern_std(n_el, dist) for dist in dist_exc]
+ 
     ex_mat = np.vstack(_ex_mat)
 
     meas_mat, keep_ba = build_meas_pattern_std(ex_mat, n_el, step_meas, parser_meas)
+
+
     return PyEITProtocol(ex_mat, meas_mat, keep_ba)
 
 
