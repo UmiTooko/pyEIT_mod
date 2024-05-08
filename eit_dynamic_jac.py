@@ -93,9 +93,10 @@ std_dsn = np.std(ds_n)
 print("Std dsn, ", std_dsn)
 print(ds_n)
 
-fig, axs = plt.subplots(1, 1, sharey=True, tight_layout=True)
-axs.hist(ds_n, bins=100)
-plt.show()
+fig, axs = plt.subplots(2, 2, tight_layout=True)
+axs[0,0].hist(ds_n, bins=100)
+axs[0,0].set_xlim(- max(ds_n) * 1.5, max(ds_n) * 1.5)
+axs[0,0].set_ylim(0, 50)
 #quit()
 #if 0:
 #    print(ds_n)
@@ -119,7 +120,7 @@ plt.show()
 #        else:
 #            ds_n[i] = 0
 #
-if 0:
+if 1:
 
     average_positive =   1 * mean_dsn + std_dsn * 0.8
     average_negative =   1 * mean_dsn - std_dsn * 0.8
@@ -133,21 +134,32 @@ if 0:
         else:
             ds_n[i] = amplify_normal_distribution(ds_n[i], mean_dsn, std_dsn, 0.25,.5)
 
+#axs[1].hist(ds_n, bins=100)
+
+if 1:
+    point_val = []
+    for j in range(499,532):            #Coordinate range for line going from electrode 1 to 9
+        point_val.append(ds_n[j])
+    axs[0,1].plot(np.linspace(-1,1,532 - 499),point_val)
+    axs[0,1].set_xlim(-1, 1)
+    axs[0,1].set_ylim(-1, 1)
+    axs[0,1].set_aspect('equal')
 
 
+#plt.show()
 
-
-fig, ax = plt.subplots(constrained_layout=True)
+#fig, ax = plt.subplots(constrained_layout=True)
 
 norm = TwoSlopeNorm(vcenter=0)
 #norm = TwoSlopeNorm(vmin = -max_dsn * 50, vcenter=0, vmax = max_dsn * 50)
 # plot EIT reconstruction
-im = ax.tripcolor(x, y, tri, ds_n, norm = None, shading="flat", cmap=plt.cm.magma)
+im = axs[1,1].tripcolor(x, y, tri, ds_n, norm = None, shading="flat", cmap=plt.cm.magma)
 for i, e in enumerate(mesh_obj.el_pos):
-    ax.annotate(str(i + 1), xy=(x[e], y[e]), color="r")
-ax.set_aspect("equal")
-
-fig.colorbar(im, ax=ax)
+    axs[1,1].annotate(str(i + 1), xy=(x[e], y[e]), color="r")
+axs[1,1].set_aspect("equal")
+axs[1,1].set_xlim(-1, 1)
+axs[1,1].set_ylim(-1, 1)
+#fig.colorbar(im, ax=axs[1,1])
 
 plt.title("p = {} | lambda = {}".format(p, lamb))
 

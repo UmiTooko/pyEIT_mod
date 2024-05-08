@@ -83,6 +83,7 @@ def main():
 
 
         except Exception as e:
+            print(e, end = '\n')
             print("Không tìm thấy dữ liệu tham chiếu ref.txt. Hãy sử dụng --ref để thu thập giá trị tham chiếu hoặc kiểm tra lại đường dẫn")
             return
         average_ref = np.average(v0) 
