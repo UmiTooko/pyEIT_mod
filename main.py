@@ -30,6 +30,8 @@ def parse_args():
     parser = argparse.ArgumentParser(description="University of Engineering and Technology VNU - Electronic Impedance Tomography")
     parser.add_argument("--port", type=str, required=True, help="Serial port for Arduino.")
     parser.add_argument("--ref", help="Measure ref_data.", default = False, action="store_true")
+    parser.add_argument("--n_el", type = int,help="Number of electrodes.", default = 16)
+
     parser.add_argument("--h0", type = float, help="Mesh size.", default = 0.06)
     parser.add_argument("--p", type = float, help="Value p in Jacobian.", default = 0.2)
     parser.add_argument("--lamb", type = float, help="Value lambda in Jacobian.", default = 0.005)
@@ -38,11 +40,19 @@ def parse_args():
     parser.add_argument("--truth", help="Plot the truth image.", default = False, action = 'store_true')
     parser.add_argument("--nor_dis_amp", help="Amplifing value based on its distance from the mean value (the ds_n itself is a normal distribution). The further the higher gain.", default = False, action = 'store_true')
 
+    parser.add_argument("--test", help="Some testings.", default = False, action="store_true")
+
     parser.add_argument("--static", help="Reconstruct 1 frame.", default = False, action="store_true")
     parser.add_argument("--name", type = str, help="Specific a name for figure. Format h0_p_lambda__<name> (for static and ref mode).", default= None)
     parser.add_argument("--realtime", help="Run realtime.", default = False, action="store_true")
     parser.add_argument("--interval", type=int, default = 50, help="Animation interval in milliseconds (for realtime mode).")
     return parser.parse_args()
+
+def amplify_normal_distribution(x, mean, std_dev, start, finish):
+    distance_from_mean = np.abs(x - mean)
+    amplification_factor = np.clip(1 + distance_from_mean * distance_from_mean / std_dev, start, finish)  # Clip to ensure values stay within desired range
+    amplified_value = x * amplification_factor
+    return amplified_value
 
 def main():
 
@@ -54,7 +64,8 @@ def main():
         check +=1
     if arg.realtime == True:
         check +=1
-  
+    if arg.test == True:
+        check +=1
         
     if check > 1:
         print("Chỉ có thể chạy một trong các chức năng cùng lúc: ref, realtime, static. Hãy thử lại.")
@@ -73,9 +84,13 @@ def main():
 
     
     """-2. Initial vars """
-    arduino = serial.Serial(arg.port, 115200 ,timeout=4)
+    print("Chương trình đang được khởi chạy, vui lòng chờ...\n")
+    time.sleep(2)
+
+    arduino = serial.Serial(arg.port, 115200 ,timeout=7)
+    time.sleep(2)
     fig, ax = plt.subplots(constrained_layout=True)
-    n_el = 16
+    n_el = arg.n_el
 
     if(arg.ref == False):
         try:
@@ -83,8 +98,9 @@ def main():
 
 
         except Exception as e:
+            print("Xảy ra lỗi khi đọc ref.txt, xin hãy kiểm tra lại\n")
             print(e, end = '\n')
-            print("Không tìm thấy dữ liệu tham chiếu ref.txt. Hãy sử dụng --ref để thu thập giá trị tham chiếu hoặc kiểm tra lại đường dẫn")
+
             return
         average_ref = np.average(v0) 
         
@@ -101,19 +117,19 @@ def main():
         while(True):
             try:
                 data = arduino.readline().decode('ascii')
-                #print(data)
+                print(data)
                 break
             except UnicodeDecodeError:
                 print("UnicodeDecodeError found! Retrying...")
                 continue
         return data
     
-    def readfromArduinoTest():
+    def TestCommunicatingChars():
         while(True):
             data = arduino.readline()
             try:
                 data = data.decode('ascii')
-                #print("data: ", data)
+                print("data: ", data)
                 break
             except UnicodeDecodeError:
                 print("UnicodeDecodeError found! ")
@@ -129,7 +145,7 @@ def main():
             data = readfromArduino()
             #Skip until the header (which is a single character 's') is found
             while(NewFrameSearchFlag == 1):
-                if len(data) > 20:
+                if len(data) > 30:
                     print("Searching for new frame.")
                     data = readfromArduino()
                     continue
@@ -163,7 +179,6 @@ def main():
         return np.array(items)
 
  
-    n_el = 16  # nb of electrodes
     mesh_obj = mesh.create(n_el, h0=arg.h0)
 
     # extract node, element, alpha
@@ -179,9 +194,10 @@ def main():
         arg.perm = 10
     eit.setup(p=arg.p, lamb=arg.lamb, method="kotre", perm = arg.perm, jac_normalized=True)
 
-    arduino.write('f'.encode('utf-8'))
+    arduino.write('f'.encode('utf-8'))                  #Send first finish flag to start the arduino
 
     def animating(i, flag):  
+        arduino.write('f'.encode('utf-8'))
 
         s_time = time.time()
         while arduino.inWaiting()==0:
@@ -201,6 +217,7 @@ def main():
                 ds = eit.solve(v0, v0, normalize=True)
                 ds_n = sim2pts(pts, tri, np.real(ds))
             else:
+                print(e)
                 print("Data error, try again!")
                 return
         #fig, axs = plt.subplots(1, 2, sharey=True, tight_layout=True)
@@ -242,9 +259,9 @@ def main():
             print("avg- ",average_negative)
             for i in range(len(ds_n)):
                 if ds_n[i] > average_positive or ds_n[i] < average_negative:
-                    ds_n[i] = tf.amplify_normal_distribution(ds_n[i], mean_dsn, std_dsn, 1.75,2)
+                    ds_n[i] = amplify_normal_distribution(ds_n[i], mean_dsn, std_dsn, 1.75,2)
                 else :
-                    ds_n[i] = tf.amplify_normal_distribution(ds_n[i], mean_dsn, std_dsn, 0.25,0.5)
+                    ds_n[i] = amplify_normal_distribution(ds_n[i], mean_dsn, std_dsn, 0.25,0.5)
         #axs[1].hist(ds_n, bins=100)
         # Clear the graph after each animating frame
         #axs[1].hist(ds_n, 100)
@@ -272,18 +289,23 @@ def main():
         if flag == 0:
              plt.colorbar(im, ax=ax)
 
-        arduino.write('f'.encode('utf-8'))
+        arduino.write('f'.encode('utf-8'))                          #Send the finish flag to announce the arduino that the plotting is done
 
         #print("Sent ", 'f'.encode('utf-8'))
         print("Run time = {}\n".format(time.time() - s_time))
 
+    if arg.test == True:
+        while True:
+            char_flag = arduino.write('f'.encode('utf-8'))
 
-
-    
+            received_str = TestCommunicatingChars()
+            print(received_str, end = '\n')
     if arg.ref == True:
         char_flag = arduino.write('f'.encode('utf-8'))
 
         while arduino.inWaiting()==0:
+            char_flag = arduino.write('f'.encode('utf-8'))
+
             print("waiting | sent ", char_flag)
             time.sleep(0.5)
             pass

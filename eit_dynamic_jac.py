@@ -30,7 +30,7 @@ n_el = 16  # nb of electrodes
 
 #the higher of p and the lower of lamb -> good shape image. Should be tunning
 p = 0.2
-lamb = 0.05
+lamb = 0.0005
 use_customize_shape = True
 h0 = 0.06
 mesh_obj = mesh.create(n_el, h0=h0)
@@ -120,7 +120,7 @@ axs[0,0].set_ylim(0, 50)
 #        else:
 #            ds_n[i] = 0
 #
-if 1:
+if 0:
 
     average_positive =   1 * mean_dsn + std_dsn * 0.8
     average_negative =   1 * mean_dsn - std_dsn * 0.8
@@ -140,10 +140,10 @@ if 1:
     point_val = []
     for j in range(499,532):            #Coordinate range for line going from electrode 1 to 9
         point_val.append(ds_n[j])
-    axs[0,1].plot(np.linspace(-1,1,532 - 499),point_val)
-    axs[0,1].set_xlim(-1, 1)
-    axs[0,1].set_ylim(-1, 1)
-    axs[0,1].set_aspect('equal')
+    axs[1,1].plot(np.linspace(0,17,532 - 499),point_val)
+    axs[1,1].set_xlim(0, 17)
+    #axs[0,1].set_ylim(-1, 1)
+    #axs[0,1].set_aspect('equal')
 
 
 #plt.show()
@@ -153,12 +153,12 @@ if 1:
 norm = TwoSlopeNorm(vcenter=0)
 #norm = TwoSlopeNorm(vmin = -max_dsn * 50, vcenter=0, vmax = max_dsn * 50)
 # plot EIT reconstruction
-im = axs[1,1].tripcolor(x, y, tri, ds_n, norm = None, shading="flat", cmap=plt.cm.magma)
+im = axs[0,1].tripcolor(x, y, tri, ds_n, norm = None, shading="flat", cmap=plt.cm.magma)
 for i, e in enumerate(mesh_obj.el_pos):
-    axs[1,1].annotate(str(i + 1), xy=(x[e], y[e]), color="r")
-axs[1,1].set_aspect("equal")
-axs[1,1].set_xlim(-1, 1)
-axs[1,1].set_ylim(-1, 1)
+    axs[0,1].annotate(str(i + 1), xy=(x[e], y[e]), color="r")
+axs[0,1].set_aspect("equal")
+axs[0,1].set_xlim(-1, 1)
+axs[0,1].set_ylim(-1, 1)
 #fig.colorbar(im, ax=axs[1,1])
 
 plt.title("p = {} | lambda = {}".format(p, lamb))
