@@ -30,9 +30,9 @@ n_el = 16  # nb of electrodes
 
 #the higher of p and the lower of lamb -> good shape image. Should be tunning
 p = 0.2
-lamb = 0.0005
-use_customize_shape = True
-h0 = 0.06
+lamb = 0.0001
+use_customize_shape = False
+h0 = 0.04
 mesh_obj = mesh.create(n_el, h0=h0)
 
 # extract node, element, alpha
@@ -94,9 +94,9 @@ print("Std dsn, ", std_dsn)
 print(ds_n)
 
 fig, axs = plt.subplots(2, 2, tight_layout=True)
-axs[0,0].hist(ds_n, bins=100)
-axs[0,0].set_xlim(- max(ds_n) * 1.5, max(ds_n) * 1.5)
-axs[0,0].set_ylim(0, 50)
+#axs[0,0].hist(ds_n, bins=100)
+#axs[0,0].set_xlim(- max(ds_n) * 1.5, max(ds_n) * 1.5)
+#axs[0,0].set_ylim(0, 50)
 #quit()
 #if 0:
 #    print(ds_n)
@@ -136,7 +136,7 @@ if 0:
 
 #axs[1].hist(ds_n, bins=100)
 
-if 1:
+if 0:
     point_val = []
     for j in range(499,532):            #Coordinate range for line going from electrode 1 to 9
         point_val.append(ds_n[j])
@@ -145,6 +145,16 @@ if 1:
     #axs[0,1].set_ylim(-1, 1)
     #axs[0,1].set_aspect('equal')
 
+if 1:
+    point_val = []
+    #max_dsn = max(sqrt(ds_n * ds_n))
+    for j in range(1137,1238):            #Coordinate range for line going from electrode 1 to 9 for h0 = 0.45 
+        point_val.append(ds_n[j] / 1)
+        #ds_n[j] = 10
+    axs[1,1].plot(np.linspace(0,17,1238 - 1137),point_val)
+    axs[1,1].set_xlim(0, 17)
+    axs[1,1].set_ylim(-1, 1)
+    axs[1,1].set_aspect('equal')
 
 #plt.show()
 
