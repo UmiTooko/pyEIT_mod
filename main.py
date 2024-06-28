@@ -45,7 +45,7 @@ def parse_args():
     parser.add_argument("--static", help="Reconstruct 1 frame.", default = False, action="store_true")
     parser.add_argument("--name", type = str, help="Specific a name for figure. Format h0_p_lambda__<name> (for static and ref mode).", default= None)
     parser.add_argument("--realtime", help="Run realtime.", default = False, action="store_true")
-    parser.add_argument("--interval", type=int, default = 50, help="Animation interval in milliseconds (for realtime mode).")
+    parser.add_argument("--interval", type=int, default = 1, help="Animation interval in milliseconds (for realtime mode).")
     return parser.parse_args()
 
 def amplify_normal_distribution(x, mean, std_dev, start, finish):
@@ -117,7 +117,7 @@ def main():
         while(True):
             try:
                 data = arduino.readline().decode('ascii')
-                print(data)
+                #print(data)
                 break
             except UnicodeDecodeError:
                 print("UnicodeDecodeError found! Retrying...")
@@ -129,7 +129,7 @@ def main():
             data = arduino.readline()
             try:
                 data = data.decode('ascii')
-                print("data: ", data)
+                #print("data: ", data)
                 break
             except UnicodeDecodeError:
                 print("UnicodeDecodeError found! ")
@@ -199,7 +199,8 @@ def main():
     def animating(i, flag):  
         arduino.write('f'.encode('utf-8'))
 
-        s_time = time.time()
+        #s_time = time.time()
+        print("The time when it starts calculating = ", time.time())
         while arduino.inWaiting()==0:
             #print("waiting")
             pass
@@ -223,6 +224,8 @@ def main():
         #fig, axs = plt.subplots(1, 2, sharey=True, tight_layout=True)
         #axs[0].hist(ds_n, bins=100)
 
+        #print("Run time until the calculation is finished = {}\n".format(time.time() - s_time))
+        print("Run time until the calculation is finished = {}\n".format(time.time()))
 
         if arg.norm != None:
             mean_dsn = np.mean(ds_n)
@@ -289,10 +292,11 @@ def main():
         if flag == 0:
              plt.colorbar(im, ax=ax)
 
-        arduino.write('f'.encode('utf-8'))                          #Send the finish flag to announce the arduino that the plotting is done
+        arduino.write('f'.encode('utf-8'))                                  #Send the finish flag to announce the arduino that the plotting is done
 
         #print("Sent ", 'f'.encode('utf-8'))
-        print("Run time = {}\n".format(time.time() - s_time))
+        #print("Run time until the displaying is finished = {}\n".format(time.time() - s_time))
+        print("Run time until the displaying is finished = {}\n".format(time.time()))
 
     if arg.test == True:
         while True:

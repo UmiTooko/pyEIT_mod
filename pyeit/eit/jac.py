@@ -56,9 +56,9 @@ class JAC(EitBase):
         self.H = self._compute_h(self.J, p, lamb, method)
         self.is_ready = True
         #self.v0 = np.zeros(np.shape(self.v0))
-        print("J = ", self.J)
-        print("v0 = ", self.v0)
-        print("H = ", self.H)
+        #print("J = ", len(self.J))
+        #print("v0 = ", len(self.v0))
+        #print("H = ", len(self.H))
     def _compute_h(  # type: ignore[override]
         self, jac: np.ndarray, p: float, lamb: float, method: str = "kotre"
     ):
@@ -88,7 +88,9 @@ class JAC(EitBase):
         np.ndarray
             H matrix, pseudo-inverse matrix of JAC
         """
+        print("jac = ", jac.shape)
         j_w_j = np.dot(jac.transpose(), jac)
+        print('jwj = ', j_w_j.shape)
         if method == "kotre":
             # p=0   : noise distribute on the boundary ('dgn')
             # p=0.5 : noise distribute on the middle
@@ -102,7 +104,7 @@ class JAC(EitBase):
         else:
             # Damped Gauss Newton, 'dgn' for short
             r_mat = np.eye(jac.shape[1])
-
+        print('r_mat = \n', r_mat)
         # build H
         return np.dot(la.inv(j_w_j + lamb * r_mat), jac.transpose())
 

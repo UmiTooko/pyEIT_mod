@@ -30,9 +30,9 @@ n_el = 16  # nb of electrodes
 
 #the higher of p and the lower of lamb -> good shape image. Should be tunning
 p = 0.2
-lamb = 0.0001
+lamb = 0.00005
 use_customize_shape = False
-h0 = 0.04
+h0 = 0.05
 mesh_obj = mesh.create(n_el, h0=h0)
 
 # extract node, element, alpha
@@ -145,7 +145,7 @@ if 0:
     #axs[0,1].set_ylim(-1, 1)
     #axs[0,1].set_aspect('equal')
 
-if 1:
+if 0:
     point_val = []
     #max_dsn = max(sqrt(ds_n * ds_n))
     for j in range(1137,1238):            #Coordinate range for line going from electrode 1 to 9 for h0 = 0.45 
@@ -169,7 +169,7 @@ for i, e in enumerate(mesh_obj.el_pos):
 axs[0,1].set_aspect("equal")
 axs[0,1].set_xlim(-1, 1)
 axs[0,1].set_ylim(-1, 1)
-#fig.colorbar(im, ax=axs[1,1])
+fig.colorbar(im, ax=axs[1,1])
 
 plt.title("p = {} | lambda = {}".format(p, lamb))
 
