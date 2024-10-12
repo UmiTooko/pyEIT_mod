@@ -154,7 +154,7 @@ def main():
                     data = readfromArduino()
                     NewFrameSearchFlag = 0
                     break
-            #Start to take the data right after the header, by doing so, no loss of frame should occcured
+            #Start to take the data right after the header, by doing so, no loss of frame should occured
             data=data.strip('\r\n')
             difference_image_array += data
             difference_image_array += ' '
@@ -292,7 +292,7 @@ def main():
         if flag == 0:
              plt.colorbar(im, ax=ax)
 
-        arduino.write('f'.encode('utf-8'))                                  #Send the finish flag to announce the arduino that the plotting is done
+        arduino.write('f'.encode('utf-8'))       #Send the finish flag to announce the arduino that the plotting is done
 
         #print("Sent ", 'f'.encode('utf-8'))
         #print("Run time until the displaying is finished = {}\n".format(time.time() - s_time))
