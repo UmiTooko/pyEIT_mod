@@ -1,7 +1,9 @@
 # Hướng dẫn chạy pyEIT (mod)
 
 ## 0. Thư viện: 
-Hãy cài python và các thư viện liên quan khác. Các thư viện đã được liệt kê trong requirement.txt và có thể chưa đủ, hãy tải các thứ viện còn thiếu trong quá trình chạy thử code.
+Hãy cài python và các thư viện liên quan khác. Các thư viện đã được liệt kê trong requirement.txt và có thể chưa đủ, hãy tải các thứ viện còn thiếu trong quá trình chạy thử code, sử dụng `pip` để tải các thư viện về. Các bạn không cần tải thư viện pyEIT về, vì bản thân cái repo này đã có thư viện đó rồi.
+
+Ví dụ: `pip install requirement.txt`; `pip install matplotlib`
 
 ## 1. Sơ lược:
 Chương trình chính nằm ở file `main.py`. Chạy file `main.py` bằng cmd. Mở cmd và gõ `python main.py <Lệnh>` với `<Lệnh>` là các tổ hợplệnh được hỗ trợ, để biết có những lệnh gì hãy sử dụng `--help`. 
