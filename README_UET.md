@@ -27,7 +27,7 @@ Chương trình sẽ đọc ma trận từ arduino qua PORT, đây là ma trận
 -  `--nor_dis_amp`      Cũng đừng dùng lệnh này. 
 -  `--test`             Cũng đừng dùng lệnh này nốt.
 -  `--static`           Tái tạo một ảnh duy nhất.
--  `--name <name>`             Đặt tên cho ảnh thu thập được, format tên là `<h0>_<p>_<lambda>_<name>` (Chỉ dùng với `--static` và `--ref`)
+-  `--name <name>`             Đặt tên cho ảnh thu thập được, format tên là `<h0>_<p>_<lambda>_<name>.png` (Chỉ dùng với `--static` và `--ref`)
 -  `--realtime`         Chạy thời gian thực, ảnh sẽ hiển thị liền kề nhau. Fps sẽ phụ thuộc vào giá trị `h0`, phương pháp khôi phục, tốc độ truyền tin của mạch và cả độ may mắn của bạn.
 -  `--interval <i>`         Khoảng thời gian giữa từng frames một đơn vị ms, không phải `<i>` càng thấp fps càng cao, cách tune giá trị này sẽ được nói chi tiết ở phần sau.
 
@@ -45,12 +45,12 @@ Một vài ví dụ lệnh:
 Chúng mình từng cố phát triển một phương pháp "bắt tay" giữa mạch đo và máy tính, tức là mạch đo gửi tín hiệu lên cho máy tính khi nó đo xong và máy tính xử lý xong sẽ gửi trả tín hiệu. Làm như này sẽ tránh được hiện tượng ùn tắc ở cổng khi mà data đẩy lên quá nhanh nhưng máy tính xử lý quá chậm. Tuy nhiên do thiếu hụt kiến thức về giao thức UART, bọn mình chưa thực sự làm chủ được cái này. Nên nếu chưa thể phát triển được cái giao tiếp đó, hãy để thời gian gửi data của mạch gấp 2 đến 4 lần thời gian máy tính xử lý (quy định ở lệnh `--interval` đã đề cập bên trên), đây chỉ là trick và không phải một giải pháp hợp lý.
 
 ## 6. Lưu ý 3: Chạy với 2 file texts data.
-File main.py chỉ được phát triển để chạy với 1 file ref.txt và data nhận từ bên ngoài vào. Nếu bạn muốn phân tích thuật toán, bạn có thể sử dụng file eit_dynamic_jac.py. Data của file này được lấy hoàn toàn từ 2 file texts nằm trong folder data, cụ thể là data/ref.txt và data/diff.txt. Data của 2 files này là ma trận m x n nỗi tiếp trên một hàng duy nhất (Các bạn có thể xem thử trong file .txt để hiểu rõ hơn, nếu copy data vào sẽ cần dành một vài giây để xóa xuống dòng, đưa toàn bộ data thành 1 dòng duy nhất.
+File main.py chỉ được phát triển để chạy với 1 file ref.txt và data nhận từ bên ngoài vào. Nếu bạn muốn phân tích thuật toán, bạn có thể sử dụng file eit_dynamic_jac.py. Data của file này được lấy hoàn toàn từ 2 file texts nằm trong folder data, cụ thể là data/ref.txt và data/diff.txt. Data của 2 files này là ma trận m x n nỗi tiếp trên một hàng duy nhất (Các bạn có thể xem thử trong file .txt để hiểu rõ hơn), nếu copy data vào sẽ cần dành một vài giây để xóa xuống dòng, đưa toàn bộ data thành 1 dòng duy nhất.
 
 ## 7. Lưu ý 4: Một vài trivias:
-- Thanh colorbar không thể cung cấp thông tin về độ dẫn điện tại vị trí đó, nó chỉ cho biết xu thế của độ dẫn điện (cao hay thấp).
+- Thanh colorbar không thể cung cấp thông tin về độ dẫn điện tại vị trí đó, nó chỉ cho biết xu thế của độ dẫn điện (cao hay thấp). Realtime nếu enable colorbar sẽ bị bug tái tạo lại colorbar liên tục, mình chưa fix được cái này.
 - Nếu bạn khôi phục hình ảnh và nhận thấy hình ảnh có một cái viền bao quanh vật thể của bạn, đây là ringing effect và Dev chính của thư viện này chưa thể xử lý triệt để được nó.
 - Việc bấm tắt cửa số (x) trong realtime mode thỉnh thoảng có thể khiến cmd của IDe bị đơ (bọn mình dùng vscode). Hãy terminate thẳng terminal bằng tổ hợp phím CTRL+C.
 
-## 7. Lưu ý 5: 
+## 8. Lưu ý 5: 
 Nhìn chung, mình chưa làm chủ được thư viện này vì nó có rất nhiều những thuật toán khó đối với mình, cũng như mạch code class chồng chất class khá phức tạp, mình chỉ dám nhận là nắm được 30-40% thư viện này. Và sau một khoảng thời gian tương đối dài (cụ thể là hơn 1 năm) làm việc với pyEIT và EIDORS (Matlab), mình nhận thấy python hiệu suất tương đối lép vế so với EIDORS của Matlab, có thể là do 2 thư viện được phát triển khác nhau và EIDORS được phát triển tốt hơn, hoặc bản thân Python có hiệu suất xử lý chưa bằng Matlab, hoặc là do mình chưa thể tối ưu thư viện pyEIT này. Mình khuyên các bạn cũng nên thử nghiên cứu EIDORS để có thể có được những kết quả tốt nhất. Cuối cùng chương trình có thể vẫn còn bug do đã lâu ngày mình chưa chạy lại, hãy liên hệ nếu bạn cần thêm thông tin.
