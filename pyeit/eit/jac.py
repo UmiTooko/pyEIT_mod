@@ -52,8 +52,11 @@ class JAC(EitBase):
         }
         # pre-compute H0 for dynamical imaging
         # H = (J.T*J + R)^(-1) * J.T
+
         self.J, self.v0 = self.fwd.compute_jac(perm=perm, normalize=jac_normalized)
+
         self.H = self._compute_h(self.J, p, lamb, method)
+
         self.is_ready = True
         #self.v0 = np.zeros(np.shape(self.v0))
         #print("J = ", len(self.J))
@@ -88,9 +91,9 @@ class JAC(EitBase):
         np.ndarray
             H matrix, pseudo-inverse matrix of JAC
         """
-        print("jac = ", jac.shape)
+        #print("jac = ", jac.shape)
         j_w_j = np.dot(jac.transpose(), jac)
-        print('jwj = ', j_w_j.shape)
+        #print('jwj = ', j_w_j.shape)
         if method == "kotre":
             # p=0   : noise distribute on the boundary ('dgn')
             # p=0.5 : noise distribute on the middle
@@ -104,8 +107,9 @@ class JAC(EitBase):
         else:
             # Damped Gauss Newton, 'dgn' for short
             r_mat = np.eye(jac.shape[1])
-        print('r_mat = \n', r_mat)
+        #print('r_mat = \n', r_mat)
         # build H
+
         return np.dot(la.inv(j_w_j + lamb * r_mat), jac.transpose())
 
     def solve_gs(self, v1: np.ndarray, v0: np.ndarray):

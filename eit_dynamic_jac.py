@@ -30,8 +30,8 @@ n_el = 16  # nb of electrodes
 
 #the higher of p and the lower of lamb -> good shape image. Should be tunning
 
-p = 0.2  
-lamb = 0.00005
+p = 0.2
+lamb = 0.001
 
 h0 = 0.06
 
@@ -44,7 +44,7 @@ pts = mesh_obj.node
 tri = mesh_obj.element
 
 x, y = pts[:, 0], pts[:, 1]
-
+    
 """ 1. problem setup """
 # mesh_obj["alpha"] = np.random.rand(tri.shape[0]) * 200 + 100 # NOT USED
 #anomaly = PyEITAnomaly_Circle(center=[0.5, 0.5], r=0.05, perm=1000.0)
@@ -57,13 +57,11 @@ protocol_obj = protocol.create(n_el, dist_exc=1, step_meas=1, parser_meas="rotat
 # calculate simulated data
 #fwd = EITForward(mesh_obj, protocol_obj)
 
-
 #v0 = fwd.solve_eit()
 #v1 = fwd.solve_eit(perm=mesh_new.perm)
 
 v0 = np.loadtxt('data/ref_data.txt')
 v1 = np.loadtxt('data/diff_data.txt')
-
 time_s = time.time()
 """ 3. JAC solver """
 # Note: if the jac and the real-problem are generated using the same mesh,
@@ -74,6 +72,7 @@ time_s = time.time()
 
 eit = jac.JAC(mesh_obj, protocol_obj)
 eit.setup(p=p,lamb=lamb, method="kotre", perm=1, jac_normalized=True)
+
 ds = eit.solve(v1, v0, normalize=True, log_scale=False)
 
 #ds = eit.solve_gs(v1, v0)
@@ -82,6 +81,7 @@ ds = eit.solve(v1, v0, normalize=True, log_scale=False)
 ds_n = sim2pts(pts, tri, np.real(ds))
 
 print('ds_n_0=\n', ds_n)
+
 #max_dsn = np.max(ds_n)
 #min_dsn = np.min(ds_n)
 #
@@ -104,10 +104,11 @@ print(ds_n)
 #axs[0,0].set_xlim(- max(ds_n) * 1.5, max(ds_n) * 1.5)
 #axs[0,0].set_ylim(0, 50)
 #quit()
-#if 0:
-#    print(ds_n)
-#    max_dsn = max(ds_n)
-#    min_dsn = min(ds_n)
+
+if 1:
+    print(ds_n)
+    max_dsn = max(ds_n)
+    min_dsn = min(ds_n)
 #    
 #    average_positive =   1 * mean_dsn + std_dsn * 1
 #    average_negative =   1 * mean_dsn - std_dsn * 1
@@ -167,7 +168,7 @@ if 0:
 fig, ax = plt.subplots(constrained_layout=True)
 
 norm = TwoSlopeNorm(vcenter=0)
-#norm = TwoSlopeNorm(vmin = -max_dsn * 50, vcenter=0, vmax = max_dsn * 50)
+norm = TwoSlopeNorm(vmin = -max_dsn * .5, vcenter=0, vmax = max_dsn * .5)
 # plot EIT reconstruction
 im = ax.tripcolor(x, y, tri, ds_n, norm = None, shading="flat", cmap=plt.cm.magma)
 for i, e in enumerate(mesh_obj.el_pos):

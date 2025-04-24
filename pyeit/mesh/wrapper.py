@@ -350,9 +350,8 @@ def create(
             bbox = np.array([[-1.2, -1.2, -1.2], [1.2, 1.2, 1.2]])
 
     # list is converted to Numpy array so we can use it then (calling shape method..)
-    # bbox = np.array(bbox)
+    bbox = np.array(bbox)
     
-
     n_dim = bbox.shape[1]  # bring dimension
    
     if n_dim not in [2, 3]:
@@ -425,6 +424,7 @@ def create(
     t = check_order(p, t)
     # 3. generate electrodes, the same as p_fix (top n_el)
     el_pos = np.arange(n_el)
+
     return PyEITMesh(element=t, node=p, el_pos=el_pos, ref_node=0)
 
 

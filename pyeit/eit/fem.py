@@ -203,7 +203,10 @@ class EITForward(Forward):
         # for i, ex_line in enumerate(self.protocol.ex_mat):
         #     f = self.solve(ex_line)
         #     v[i] = subtract_row(f[self.mesh.el_pos], self.protocol.meas_mat[i])
+        print("okokokokokok")
         f = self.solve_vectorized(self.protocol.ex_mat)
+        print("okokokokoko1k")
+
         v = subtract_row_vectorized(f[:, self.mesh.el_pos], self.protocol.meas_mat)
 
         return v.reshape(-1)
@@ -236,18 +239,18 @@ class EITForward(Forward):
         # update k if necessary and calculate r=inv(k), dense matrix, slow
         
         self.assemble_pde(perm) # not use ???
-        print("kg = ", self.kg)
-
-        print("self.mesh.el_pos = ", self.mesh.el_pos)
+        #print("kg = ", self.kg)
+        #print("self.mesh.el_pos = ", self.mesh.el_pos)
         r_mat = la.inv(self.kg.toarray())[self.mesh.el_pos]
+
         r_el = np.full((self.protocol.ex_mat.shape[0],) + r_mat.shape, r_mat)
-        print("r_el = ", r_el)
+        #print("r_el = ", r_el)
         # nodes potential
 
         f = self.solve_vectorized(self.protocol.ex_mat)
         f_el = f[:, self.mesh.el_pos]
         # build measurements and node resistance
-        v = subtract_row_vectorized(f_el, self.protocol.meas_mat)
+        v  = subtract_row_vectorized(f_el, self.protocol.meas_mat)
         ri = subtract_row_vectorized(r_el, self.protocol.meas_mat)
         v0 = v.reshape(-1)
 
@@ -478,7 +481,7 @@ def assemble(
         data = np.append(data, 1.0)
 
     # for efficient sparse inverse (csc)
-    print(sparse.csr_matrix((data, (row, col)), shape=(n_pts, n_pts)))
+    #print(sparse.csr_matrix((data, (row, col)), shape=(n_pts, n_pts)))
 
 
     return sparse.csr_matrix((data, (row, col)), shape=(n_pts, n_pts))

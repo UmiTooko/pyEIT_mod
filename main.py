@@ -46,6 +46,7 @@ def parse_args():
     parser.add_argument("--name", type = str, help="Specific a name for figure. Format h0_p_lambda__<name> (for static and ref mode).", default= None)
     parser.add_argument("--realtime", help="Run realtime.", default = False, action="store_true")
     parser.add_argument("--interval", type=int, default = 1, help="Animation interval in milliseconds (for realtime mode).")
+    parser.add_argument("--idk", default = False, action="store_true", help="Idk")
     return parser.parse_args()
 
 def amplify_normal_distribution(x, mean, std_dev, start, finish):
@@ -151,10 +152,16 @@ def main():
                     continue
                 else:
                     print("New frame found.")
+                    #with open("data/lung_real_time_data.txt") as file:
+                    #    file.write(data)
                     data = readfromArduino()
+                    #with open("data/lung_real_time.txt") as file:
+                    #    file.write(data)
                     NewFrameSearchFlag = 0
                     break
-            #Start to take the data right after the header, by doing so, no loss of frame should occured
+            #Start to take the data right after the header, by doing so, no loss of frame should occurred
+            #with open("data/lung_real_time.txt") as file:
+            #    file.write(data)
             data=data.strip('\r\n')
             difference_image_array += data
             difference_image_array += ' '
