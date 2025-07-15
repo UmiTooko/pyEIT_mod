@@ -317,7 +317,7 @@ def main():
              plt.colorbar(im, ax=ax)
 
         arduino.write('f'.encode('utf-8'))       #Send the finish flag to announce the arduino that the plotting is done
-        print("Frame no:          ",frame_order_cnt)
+        print(frame_order_cnt)
         frame_order_cnt+=1
         #print("Sent ", 'f'.encode('utf-8'))
         #print("Run time until the displaying is finished = {}\n".format(time.time() - s_time))
