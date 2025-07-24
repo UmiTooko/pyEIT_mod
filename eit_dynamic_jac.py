@@ -26,23 +26,19 @@ def amplify_normal_distribution(x, mean, std_dev, start, finish):
     return amplified_value
 
 """ 0. build mesh """
-n_el = 16  # nb of electrodes
+
 
 #the higher of p and the lower of lamb -> good shape image. Should be tunning
-
 p = 0.2
 lamb = 0.001
+h0 = 0.06       #mesh's resolution
+n_el = 16       #number of electrode
+use_customize_shape = thorax        # Use "thorax" for thorax shape.
+mesh_obj = mesh.create(n_el, h0=h0, fd = use_customize_shape)   #Create the mesh including nodes
 
-h0 = 0.06
-
-use_customize_shape = circle # Use "thorax" for thorax shape.
-
-mesh_obj = mesh.create(n_el, h0=h0, fd = use_customize_shape)
-
-# extract node, element, alpha
+# extract node, element
 pts = mesh_obj.node
 tri = mesh_obj.element
-
 x, y = pts[:, 0], pts[:, 1]
     
 """ 1. problem setup """
@@ -166,9 +162,8 @@ if 0:
 #plt.show()
 
 fig, ax = plt.subplots(constrained_layout=True)
-
-norm = TwoSlopeNorm(vcenter=0)
-norm = TwoSlopeNorm(vmin = -max_dsn * .5, vcenter=0, vmax = max_dsn * .5)
+#norm = TwoSlopeNorm(vcenter=0)
+#norm = TwoSlopeNorm(vmin = -max_dsn * .5, vcenter=0, vmax = max_dsn * .5)
 # plot EIT reconstruction
 im = ax.tripcolor(x, y, tri, ds_n, norm = None, shading="flat", cmap=plt.cm.magma)
 for i, e in enumerate(mesh_obj.el_pos):

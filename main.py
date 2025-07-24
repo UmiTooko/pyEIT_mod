@@ -24,7 +24,6 @@ import argparse
 import os
 
 
-import trivia_func as tf
 """ -3. CLI """
 def parse_args():
     parser = argparse.ArgumentParser(description="University of Engineering and Technology VNU - Electronic Impedance Tomography")
@@ -118,7 +117,6 @@ def main():
         while(True):
             try:
                 data = arduino.readline().decode('ascii')
-                #print(data)
                 break
             except UnicodeDecodeError:
                 print("UnicodeDecodeError found! Retrying...")
