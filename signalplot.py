@@ -11,7 +11,7 @@ def main():
     print(t)
     axes[0].set_ylim(0,7)
     axes[1].set_ylim(0,7)
-    axes[2].set_ylim(-2,2)
+    axes[2].set_ylim(-3,3)
 
     axes[0].set_ylabel('Voltage (V)')
     axes[1].set_ylabel('Voltage (V)')
@@ -21,8 +21,8 @@ def main():
     axes[1].set_xlabel('Measurement counts')
     axes[2].set_xlabel('Measurement counts')
     
-    axes[0].title.set_text('(a) Refference Voltage | V1')
-    axes[1].title.set_text('(b) Difference Voltage | V0')
+    axes[0].title.set_text('(a) Refference Voltage | V0')
+    axes[1].title.set_text('(b) Difference Voltage | V1')
     axes[2].title.set_text('(c) V1 - V0')
     
     axes[0].plot(t,v0)
@@ -30,6 +30,26 @@ def main():
     axes[2].plot(t,v2)
     plt.show()
     return
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 def box_blur(image):
     """
