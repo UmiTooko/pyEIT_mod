@@ -24,7 +24,7 @@ def ROI1(imglink):
     if contours:
         largest_contour = max(contours, key=cv2.contourArea)
         cv2.drawContours(roi_mask, [largest_contour], -1, 255, thickness=cv2.FILLED)
-
+    
     # === Apply the ROI mask to the original image ===
     masked_img = cv2.bitwise_and(img_rgb, img_rgb, mask=roi_mask)
 
