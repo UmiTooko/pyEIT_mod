@@ -14,7 +14,7 @@ def normalized_arr(arr):
 
 
 # Read and parse the file
-filename = 'data/_perforrmance_diff.txt'
+filename = 'data/data_v1_ok.txt'
 
 Input = []  # To hold all flattened frames
 
@@ -84,7 +84,7 @@ if 1:
 
 
 
-if 0:
+if 1:
     multipliers = [0.95, 0.975, 1.025, 1.05]
     multipliers_ = [0.25, 0.5, 1.5, 1.75]
     NormalizedGoodExtractData = []
@@ -125,7 +125,7 @@ if 0:
     ax4.set_ylim(-0.1,1.1)
 
 
-if 0:
+if 1:
     NormalizedIdealExtractData = []
     for idx in range(len(IdealExtractData)):
         IdealExtractDataMeans = np.mean(IdealExtractData[idx])

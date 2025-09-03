@@ -98,7 +98,7 @@ if __name__ == "__main__":
     N = 10000  # number of samples
     tau0 = 1.0  # base sampling time (s)
     # Read and parse the file
-    filename = 'data/stability.txt'
+    filename = 'data/data_v1_ok.txt'
     frames = read_frames(filename)
     frames = np.array(frames)
     print(frames)
@@ -127,7 +127,7 @@ if __name__ == "__main__":
     #plt.plot(signal)
     #plt.show()
     # === 2. Compute Allan deviation ===
-    tau, adev = allan_variance(avg_signals, tau0)
+    tau, adev = allan_variance(IdealData, tau0)
     log_tau = np.log10(tau)
     log_adev = np.log10(adev)
 
